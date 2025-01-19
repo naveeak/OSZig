@@ -16,6 +16,9 @@ https://operating-system-in-1000-lines.vercel.app/en/03-overview
 https://operating-system-in-1000-lines.vercel.app/en/04-boot
 https://operating-system-in-1000-lines.vercel.app/en/05-hello-world
 
+##Not Implemented
+https://operating-system-in-1000-lines.vercel.app/en/06-libc
+
 ##Helper command:
 llvm-objdump -d zig-out/bin/kernel.elf | less
 llvm-nm ig-out/bin/kernel.elf
