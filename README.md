@@ -5,7 +5,8 @@ Ref : https://operating-system-in-1000-lines.vercel.app/en/
 Ref Zig: https://www.youtube.com/watch?v=eAM9ol7W2w8&list=WL&index=1
 
 Run help:
-zig build run in root folder
+cd ${baseDir}
+zig build run
 
 Completion Indicator:
 https://operating-system-in-1000-lines.vercel.app/en/
