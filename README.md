@@ -2,7 +2,7 @@
 OS in thousand lines
 
 Ref : https://operating-system-in-1000-lines.vercel.app/en/
-Ref Zig: https://www.youtube.com/watch?v=eAM9ol7W2w8&list=WL&index=1
+Ref Zig: https://www.youtube.com/watch?v=eAM9ol7W2w8&list=WL&index=1 - done until 2hr.55min
 
 ##Run help:
 cd ${baseDir}
