@@ -1,28 +1,35 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
+    // 2.
+    // CFLAGS="-std=c11 -O2 -g3 -Wall -Wextra --target=riscv32 -ffreestanding -nostdlib"
+    const exe = b.addExecutable(.{ .name = "kernel.elf", .root_source_file = b.path("src/kernel.zig"), .target = b.resolveTargetQuery(.{
+        .cpu_arch = .riscv32,
+        .os_tag = .freestanding,
+        .abi = .none,
+    }), .optimize = .ReleaseSmall, .strip = false });
 
-    const optimize = b.standardOptimizeOption(.{});
+    exe.entry = .disabled;
 
-    const exe = b.addExecutable(.{
-        .name = "OSZig",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    exe.setLinkerScript(b.path("src/kernel.ld"));
 
     b.installArtifact(exe);
 
-    const run_cmd = b.addSystemCommand(&.{
-        "qemu-system-riscv32"
-    });
+    // zig build run trigger this 1.
+    const run_cmd = b.addSystemCommand(&.{"qemu-system-riscv32"});
     run_cmd.addArgs(&.{
-        "-machine", "virt",
-         "-bios", "default",
-         "-serial", "mon:stdio", 
-         "-nographic" ,"--no-reboot"
+        "-machine",   "virt",
+        "-bios",      "default",
+        "-serial",    "mon:stdio",
+        "-nographic", "--no-reboot",
+        "-kernel",
     });
+
+    // add the zig executable that present in the zig cache dynamically
+    // $QEMU -machine virt -bios default -nographic -serial mon:stdio --no-reboot \
+    // -kernel kernel.elf
+    // this triggers the exe build defined earlier 2.
+    run_cmd.addArtifactArg(exe);
 
     run_cmd.step.dependOn(b.getInstallStep());
 
@@ -32,15 +39,4 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
-
-    const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
-
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_exe_unit_tests.step);
 }
