@@ -14,6 +14,7 @@ https://operating-system-in-1000-lines.vercel.app/en/01-setting-up-development-e
 https://operating-system-in-1000-lines.vercel.app/en/02-assembly
 https://operating-system-in-1000-lines.vercel.app/en/03-overview
 https://operating-system-in-1000-lines.vercel.app/en/04-boot
+https://operating-system-in-1000-lines.vercel.app/en/05-hello-world
 
 ##Helper command:
 llvm-objdump -d zig-out/bin/kernel.elf | less

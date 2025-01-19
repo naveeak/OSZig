@@ -9,6 +9,7 @@ export fn kernel_main() noreturn {
 
     const hello = "Hello kernel!\n";
     console.print("{s}", .{hello}) catch {};
+    console.print("1 + 2 = {d}, {x}\n", .{1 + 2, 0x1234abcd}) catch {};
 
     while (true) asm volatile ("wfi");
 }
