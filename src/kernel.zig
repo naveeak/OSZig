@@ -11,7 +11,9 @@ export fn kernel_main() noreturn {
     console.print("{s}", .{hello}) catch {};
     console.print("1 + 2 = {d}, {x}\n", .{1 + 2, 0x1234abcd}) catch {};
 
-    while (true) asm volatile ("wfi");
+    @panic("what do?");
+
+    // while (true) asm volatile ("wfi");
 }
 
 export fn boot() linksection(".text.boot") callconv(.Naked) void {
@@ -52,4 +54,12 @@ pub fn sbi(arg0: usize, arg1: usize, arg2: usize, arg3: usize, arg4: usize, arg5
     );
 
     return .{ .err = err, .value = value };
+}
+
+pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, ret_addr: ?usize) noreturn {
+    _= error_return_trace;
+    _ = ret_addr;
+    console.print("PANIC: {s}\n",.{msg}) catch {};
+
+    while (true) asm volatile("wfi");
 }

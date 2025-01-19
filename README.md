@@ -15,6 +15,7 @@ https://operating-system-in-1000-lines.vercel.app/en/02-assembly
 https://operating-system-in-1000-lines.vercel.app/en/03-overview
 https://operating-system-in-1000-lines.vercel.app/en/04-boot
 https://operating-system-in-1000-lines.vercel.app/en/05-hello-world
+https://operating-system-in-1000-lines.vercel.app/en/07-kernel-panic -- Without file name and number
 
 ##Not Implemented
 https://operating-system-in-1000-lines.vercel.app/en/06-libc
