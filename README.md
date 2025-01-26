@@ -16,6 +16,7 @@ https://operating-system-in-1000-lines.vercel.app/en/03-overview
 https://operating-system-in-1000-lines.vercel.app/en/04-boot
 https://operating-system-in-1000-lines.vercel.app/en/05-hello-world
 https://operating-system-in-1000-lines.vercel.app/en/07-kernel-panic -- Without file name and number
+https://operating-system-in-1000-lines.vercel.app/en/08-exception 
 
 ##Not Implemented
 https://operating-system-in-1000-lines.vercel.app/en/06-libc
@@ -23,6 +24,7 @@ https://operating-system-in-1000-lines.vercel.app/en/06-libc
 ##Helper command:
 llvm-objdump -d zig-out/bin/kernel.elf | less
 llvm-nm ig-out/bin/kernel.elf
+llvm-addr2line -e zig-out/bin/kernel.elf 8020014a
 
 
 ##Notes
@@ -58,3 +60,8 @@ ashok@ashok-latitudee5470:~/Documents/projects/OSZig$ llvm-nm zig-out/bin/kernel
 80200000 T boot
 8020000e T kernel_main
 80200030 W memset
+
+PANIC: UnExpected trap scause=2, stval=0, user_pc=8020014a
+
+llvm-addr2line -e zig-out/bin/kernel.elf 8020014a
+/home/ashok/Documents/projects/OSZig/src/kernel.zig:17
