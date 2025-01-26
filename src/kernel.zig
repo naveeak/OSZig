@@ -46,6 +46,8 @@ fn main() !void {
 
     const one = allocPages(1);
     const two = allocPages(2);
+    //will cause panic max pages availabel is 16384 . 64 * 1024 * 1024 / page_size
+    //allocPages(16385);
 
     try console.print("one: {*} ({}), two: {*} ({})", .{ one.ptr, one.len, two.ptr, two.len });
 
