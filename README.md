@@ -65,4 +65,9 @@ ashok@ashok-latitudee5470:~/Documents/projects/OSZig$ llvm-nm zig-out/bin/kernel
 PANIC: UnExpected trap scause=2, stval=0, user_pc=8020014a
 
 llvm-addr2line -e zig-out/bin/kernel.elf 8020014a
-/home/ashok/Documents/projects/OSZig/src/kernel.zig:17
+/home/ashok/Documents/projects/OSZig/src/kernel.zig:
+
+one: u8@80222000 (4096), two: u8@80223000 (4096)
+llvm-nm zig-out/bin/kernel.elf | grep free_ram
+80222000 B __free_ram
+84222000 B __free_ram_end

@@ -1,22 +1,54 @@
+const std = @import("std");
+
 const bss = @extern([*]u8, .{ .name = "__bss" });
 const bss_end = @extern([*]u8, .{ .name = "__bss_end" });
 const stack_top = @extern([*]u8, .{ .name = "__stack_top" });
-const std = @import("std");
+
+const ram_start = @extern([*]u8, .{ .name = "__free_ram" });
+const ram_end = @extern([*]u8, .{ .name = "__free_ram_end" });
+
+
+const page_size = 4096;
+var used_mem: usize = 0;
+fn allocPages(pages: usize) []u8 {
+    const ram = ram_start[0..(@intFromPtr(ram_end) - @intFromPtr(ram_start))];
+    const alloc_size = pages * page_size;
+    if (used_mem + alloc_size > ram.len) {
+        @panic("out of memory");
+    }
+    const result = ram[used_mem..alloc_size];
+    used_mem += alloc_size;
+    @memset(result, 0);
+    return result;
+}
 
 export fn kernel_main() noreturn {
+    main() catch |err|  std.debug.panic("{s}", .{@errorName(err)});
+    while (true) asm volatile ("wfi");
+
+}
+
+fn main() !void {
     const bss_len = @intFromPtr(bss_end) - @intFromPtr(bss);
     @memset(bss[0..bss_len], 0);
 
     const hello = "Hello kernel!\n";
-    console.print("{s}", .{hello}) catch {};
-    console.print("1 + 2 = {d}, {x}\n", .{ 1 + 2, 0x1234abcd }) catch {};
+    try console.print("{s}", .{hello});
+    try console.print("1 + 2 = {d}, {x}\n", .{ 1 + 2, 0x1234abcd });
 
     // @panic("what do?");
 
-    _ = write_csr("stvec", @intFromPtr(&kernel_entry));
-    asm volatile ("unimp");
+    {
+        _ = write_csr("stvec", @intFromPtr(&kernel_entry));
+        // uncomment to trigger cpu exception
+        // asm volatile ("unimp");
+    }
 
-    while (true) asm volatile ("wfi");
+    const one = allocPages(1);
+    const two = allocPages(2);
+
+    try console.print("one: {*} ({}), two: {*} ({})", .{ one.ptr, one.len, two.ptr, two.len });
+
 }
 
 export fn boot() linksection(".text.boot") callconv(.Naked) void {

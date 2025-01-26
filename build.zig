@@ -17,6 +17,7 @@ pub fn build(b: *std.Build) void {
 
     // zig build run trigger this 1.
     const run_cmd = b.addSystemCommand(&.{"qemu-system-riscv32"});
+    run_cmd.step.dependOn(b.getInstallStep());
     run_cmd.addArgs(&.{
         "-machine",   "virt",
         "-bios",      "default",
@@ -31,7 +32,6 @@ pub fn build(b: *std.Build) void {
     // this triggers the exe build defined earlier 2.
     run_cmd.addArtifactArg(exe);
 
-    run_cmd.step.dependOn(b.getInstallStep());
 
     if (b.args) |args| {
         run_cmd.addArgs(args);
