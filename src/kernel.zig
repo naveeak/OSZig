@@ -62,7 +62,7 @@ pub fn sbi(arg0: usize, arg1: usize, arg2: usize, arg3: usize, arg4: usize, arg5
 pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, ret_addr: ?usize) noreturn {
     _ = error_return_trace;
     _ = ret_addr;
-    console.print("PANIC: {s}\n", .{msg}) catch {};
+    console.print("KERNEL PANIC: {s}\n", .{msg}) catch {};
 
     while (true) asm volatile ("wfi");
 }
