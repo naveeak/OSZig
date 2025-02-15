@@ -7,7 +7,6 @@ const stack_top = @extern([*]u8, .{ .name = "__stack_top" });
 const ram_start = @extern([*]u8, .{ .name = "__free_ram" });
 const ram_end = @extern([*]u8, .{ .name = "__free_ram_end" });
 
-
 const page_size = 4096;
 var used_mem: usize = 0;
 fn allocPages(pages: usize) []u8 {
@@ -22,10 +21,102 @@ fn allocPages(pages: usize) []u8 {
     return result;
 }
 
-export fn kernel_main() noreturn {
-    main() catch |err|  std.debug.panic("{s}", .{@errorName(err)});
-    while (true) asm volatile ("wfi");
+const Process = struct {
+    pid: usize = 0,
+    state: enum { unused, runnable } = .unused,
+    sp: *usize = undefined,
+    stack: [8192]u8 align(4) = undefined, //kernel stack
+};
 
+var procs = [_]Process{.{}} ** 8;
+
+fn createProcess(pc: *const anyopaque) *Process {
+    const p = for (&procs, 0..) |*p, i| {
+        if (p.state == .unused) {
+            p.pid = i;
+            break p;
+        }
+    } else @panic("too many processes!");
+
+    const regs: []usize = blk: {
+        const ptr: [*]usize = @alignCast(@ptrCast(&p.stack));
+        break :blk ptr[0 .. p.stack.len / @sizeOf(usize)];
+    };
+
+    const sp = regs[regs.len - 13..];
+    sp[0] = @intFromPtr(pc);
+    for (sp[1 ..]) |*reg| {
+        reg.* = 0;
+    }
+
+    p.state = .runnable;
+    p.sp = &sp.ptr[0];
+    return p;
+}
+
+var pA: *Process = undefined;
+var pB: *Process = undefined;
+
+export fn processA() void {
+    while (true) {
+        console.print("A ", .{}) catch {};
+        context_switch(&pA.sp, &pB.sp);
+        for (30_000_000) |_| asm volatile ("nop");
+    }
+}
+
+export fn processB() void {
+    while (true) {
+        console.print("B ", .{}) catch {};
+        context_switch(&pB.sp, &pA.sp);
+        for (30_000_000) |_| asm volatile ("nop");
+    }
+}
+
+export fn context_switch(cur: **usize, next: **usize) callconv(.C) void {
+    asm volatile (
+        \\addi sp, sp, -4*13
+        \\sw ra, 4 * 0(sp)
+        \\sw s0, 4 * 1(sp) 
+        \\sw s1, 4 * 2(sp) 
+        \\sw s2, 4 * 3(sp) 
+        \\sw s3, 4 * 4(sp) 
+        \\sw s4, 4 * 5(sp) 
+        \\sw s5, 4 * 6(sp) 
+        \\sw s6, 4 * 7(sp) 
+        \\sw s7, 4 * 8(sp)
+        \\sw s8, 4 * 9(sp) 
+        \\sw s9, 4 * 10(sp) 
+        \\sw s10, 4 * 11(sp) 
+        \\sw s11, 4 * 12(sp)
+        \\
+        \\sw sp, (%[cur])
+        \\lw sp, (%[next])
+        \\
+        \\lw ra, 4 * 0(sp)
+        \\lw s0, 4 * 1(sp) 
+        \\lw s1, 4 * 2(sp) 
+        \\lw s2, 4 * 3(sp) 
+        \\lw s3, 4 * 4(sp) 
+        \\lw s4, 4 * 5(sp) 
+        \\lw s5, 4 * 6(sp) 
+        \\lw s6, 4 * 7(sp) 
+        \\lw s7, 4 * 8(sp)
+        \\lw s8, 4 * 9(sp) 
+        \\lw s9, 4 * 10(sp) 
+        \\lw s10, 4 * 11(sp) 
+        \\lw s11, 4 * 12(sp)
+        \\addi sp, sp, 13*4
+        \\ret
+        :
+        : [cur] "r" (cur),
+          [next] "r" (next),
+    );
+}
+
+export fn kernel_main() noreturn {
+    main() catch |err| std.debug.panic("{s}", .{@errorName(err)});
+    while (true) asm volatile ("wfi");
 }
 
 fn main() !void {
@@ -38,19 +129,29 @@ fn main() !void {
 
     // @panic("what do?");
 
+    //exception handling
     {
         _ = write_csr("stvec", @intFromPtr(&kernel_entry));
         // uncomment to trigger cpu exception
         // asm volatile ("unimp");
     }
 
-    const one = allocPages(1);
-    const two = allocPages(2);
-    //will cause panic max pages availabel is 16384 . 64 * 1024 * 1024 / page_size
-    //allocPages(16385);
+    // page allocation
+    {
+        const one = allocPages(1);
+        const two = allocPages(2);
+        //will cause panic max pages availabel is 16384 . 64 * 1024 * 1024 / page_size
+        //allocPages(16385);
 
-    try console.print("one: {*} ({}), two: {*} ({})", .{ one.ptr, one.len, two.ptr, two.len });
+        try console.print("one: {*} ({}), two: {*} ({})\n", .{ one.ptr, one.len, two.ptr, two.len });
+    }
 
+    //process
+    {
+        pA = createProcess(&processA);
+        pB = createProcess(&processB);
+        processA();
+    }
 }
 
 export fn boot() linksection(".text.boot") callconv(.Naked) void {

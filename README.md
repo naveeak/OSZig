@@ -3,7 +3,7 @@ OS in thousand lines
 
 Ref : https://operating-system-in-1000-lines.vercel.app/en/
 Ref Zig: https://www.youtube.com/watch?v=eAM9ol7W2w8&list=WL&index=1 - done 
-         https://www.youtube.com/watch?v=_GczkjDvccE&t=499s - doen until 36.09
+         https://www.youtube.com/watch?v=_GczkjDvccE&t=499s - doen until 2.50.26
 
 ##Run help:
 cd ${baseDir}
